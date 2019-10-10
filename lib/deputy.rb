@@ -2,25 +2,26 @@ require 'open-uri'
 require 'nokogiri'
 
 
-def get_deputy_list(url)
+def get_deputy_names(url)
 
 	deputy_list = []
 
 	doc = Nokogiri::HTML(open(url))
 	doc.xpath('//option').each do |value|
-		puts value
-		puts value.text
-		cut = value.text.split.delete(0) # Supprimer le premier élément
-		deputy_list << value.text
+		cut = value.text.split(' ')[1..-1]
+		deputy_list << cut
 	end
 
+	print deputy_list
 	puts deputy_list.size
+	return deputy_list
 end
 
 
 def get_deputy_url_list(url)
 
 	deputy_url_list = []
+	deputy_final_url_list = []
 
 	doc = Nokogiri::HTML(open(url))
 	doc.xpath('//*[@id="deputes-list"]/div/ul/li/a').each do |value|
@@ -28,51 +29,56 @@ def get_deputy_url_list(url)
 		deputy_url_list << value["href"]
 	end
 
-	#/html/body/table/tbody/tr[612]/td[2]/span[1]/span[2]
-	#/html/body/table/tbody/tr[1407]/td[2]/span[1]/a
-	#/html/body/table/tbody/tr[1018]/td[2]/span[1]/span[2]
-	#/html/body/table/tbody/tr[1685]/td[2]/span[1]/a
-	#//*[@id="deputes-list"]/div[2]/ul[1]/li[20]/a
-
 	deputy_url_list.each do |url|
-		url = "http://www2.assemblee-nationale.fr" + url + ".html"
-	#	deputy_url_list << url
+		deputy_final_url_list << "http://www2.assemblee-nationale.fr" + url
 	end	
 
-	puts deputy_url_list
+	puts deputy_final_url_list
 	puts deputy_url_list.size
-
+	return deputy_final_url_list
 
 end
 
 
-# //*[@id="mw-content-text"]/div/table[2]/tbody/tr[1]/td[2]/a
+def deputy_email(deputy_email_url)
+
+	email_list = []
+
+	puts "GO EMAIL"
+	deputy_email_url.each do |url|
+		doc = Nokogiri::HTML(open(url))
+		doc.xpath('//dd//a[@class="email"]').each do |value|
+			mail_select = value.text.split.select{|word| word.length > 25}
+			puts mail_select
+			email_list << mail_select
+		end
+	end
+
+	return email_list
+
+end
 
 
-get_deputy_url_list("http://www2.assemblee-nationale.fr/deputes/liste/alphabetique")
-#get_deputy_list("http://www2.assemblee-nationale.fr/deputes/liste/alphabetique")
-#get_deputy_list("https://fr.wikipedia.org/wiki/Liste_des_d%C3%A9put%C3%A9s_de_la_XVe_l%C3%A9gislature_de_la_Cinqui%C3%A8me_R%C3%A9publique")
+begin
 
-=begin 
+	url = get_deputy_url_list("http://www2.assemblee-nationale.fr/deputes/liste/alphabetique")
+	names = get_deputy_names("http://www2.assemblee-nationale.fr/deputes/liste/alphabetique")
+	email = deputy_email(url)
 
-deputy_hash
-deputy_id[:first] = "Jean"
-deputy_id[:name] = "Durant"
-deputy_id[:email] = "jean.durant@assemblée.fr"
+	final_list = Hash.new
+	
+	names.each do |first_name,last_name|	
+		email.each do |mail|
+			final_list["Prenom"] = first_name
+			final_list["Nom"] = last_name
+			final_list["Mail"] = mail
+		end
+	end
 
-a << deputy_hash
-a = [
-  { 
-    "first_name" => "Jean",
-    "last_name" => "Durant",
-    "email" => "jean.durant@assemblée.fr"
-  },
-  { 
-    "first_name" => "Martin",
-    "last_name" => "Dupont",
-    "email" => "martin.dupont@assemblée.fr"
-  },
-  etc
-]
+rescue => e
 
-=end
+	puts "Pas de panique tout va bien"
+
+end 
+
+print final_list
