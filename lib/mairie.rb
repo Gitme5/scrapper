@@ -3,13 +3,13 @@ require 'nokogiri'
 
 
 def hash_builder names, values
-  hash = Hash.new
 
-  names.each_with_index do |name_index, value_index|
-    hash[name_index] = values[value_index]
+  result = []
+  names.each_with_index do |name_index, index|
+    result << {name_index => values[index]}
   end
 
-  hash
+  return result
 end
 
 

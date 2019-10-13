@@ -2,13 +2,14 @@ require 'open-uri'
 require 'nokogiri'
 
 def hash_builder names, values
-  hash = Hash.new
 
-  names.each_with_index do |name_index, value_index|
-    hash[name_index] = values[value_index]
+  result = []
+  names.each_with_index do |name_index, index|
+  	result << {name_index => values[index]}
   end
 
-  hash
+  return result
+
 end
 
 def nokogiri_parser
@@ -21,7 +22,7 @@ def nokogiri_parser
 			names << node.text
 		end
 		doc.xpath('//a[@class="price"]').each do |node|
-		  	values << node.text
+		  	values << node.text.gsub('$','').to_f
 		end
 
 	hash_builder(names,values)
